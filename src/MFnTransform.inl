@@ -4,6 +4,9 @@
 #define _doc_FnTransform_transformation \
     "Returns the transformation matrix represented by this transform."
 
+#define _doc_FnTransform_set \
+    "Change this transform to equal the given matrix."
+
 #define _doc_FnTransform_setTranslation \
     "Sets the transform's translation."
 
@@ -498,10 +501,20 @@ FnTransform
         return matrix;
     }, _doc_FnTransform_transformation)
 
+    .def("set", [](MFnTransform & self, const MTransformationMatrix & transform) {
+        MStatus status = self.set(transform);
+
+        if (!status) {
+            throw std::logic_error(status.errorString().asChar());
+        }
+    }, py::arg("transform"), _doc_FnTransform_set)
+
     .def("translateBy", [](MFnTransform & self, const MVector & vec, MSpace::Space space) {
         MStatus status = self.translateBy(vec, space);
 
         if (!status) {
             throw std::logic_error(status.errorString().asChar());
         }
-    }, py::arg("vec"), py::arg("space"), _doc_FnTransform_translateBy);
+    }, py::arg("vec"), py::arg("space"), _doc_FnTransform_translateBy)
+
+;
