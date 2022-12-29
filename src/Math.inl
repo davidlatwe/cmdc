@@ -207,6 +207,7 @@ Matrix
     .def("setToIdentity", &MMatrix::setToIdentity)
 
     .def_property_readonly("isSingular", &MMatrix::isSingular)
+    .def_property_readonly_static("identity", [](py::object /* self */) { return MMatrix::identity; })
 
     .def("__len__", [](const MMatrix &self) -> int {
         return 16;
