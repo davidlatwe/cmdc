@@ -154,6 +154,34 @@ TransformationMatrix
         }
     }, py::arg("rotate"), py::arg("space"), "Adds to the rotation component of the rotation matrix by rotating relative to the existing transformation using an euler rotation.")
 
+    .def("getRotationQuaternion", [](MTransformationMatrix & self) -> MQuaternion {
+        double x, y, z, w;
+        const MStatus status = self.getRotationQuaternion(x, y, z, w);
+
+        if (!status) {
+            throw std::logic_error(status.errorString().asChar());
+        }
+        return MQuaternion(x, y, z, w);
+    }, "Get the rotation component of the transformation matrix as a quaternion. (in MSpace::kTransform space)")
+
+    .def("setRotationQuaternion", [](MTransformationMatrix & self, double x, double y, double z, double w) {
+        const MStatus status = self.setRotationQuaternion(x, y, z, w);
+
+        if (!status) {
+            throw std::logic_error(status.errorString().asChar());
+        }
+    }, py::arg("x"), py::arg("y"), py::arg("z"), py::arg("w"), "Set the rotation component of the transformation matrix using a quaternion. (in MSpace::kTransform space)")
+
+    .def("addRotationQuaternion", [](MTransformationMatrix & self, double x, double y, double z, double w, MSpace::Space space) {
+        const MStatus status = self.addRotationQuaternion(x, y, z, w, space);
+
+        if (!status) {
+            throw std::logic_error(status.errorString().asChar());
+        }
+    }, py::arg("x"), py::arg("y"), py::arg("z"), py::arg("w"), py::arg("space"),
+    "Add to the rotation component by rotating relative to the existing transformation.\n"
+    "The only valid transformation spaces for this method are MSpace::kTransform and MSpace::kPreTransform. All other spaces are treated as being equivalent to MSpace::kTransform.")
+
     .def_property_readonly("rotationOrder", [](MTransformationMatrix & self) -> MTransformationMatrix::RotationOrder {
         MStatus status;
         auto result = self.rotationOrder(&status);
@@ -295,7 +323,7 @@ TransformationMatrix
         }
     }, py::arg("axis"), py::arg("rotation"), _doc_TransformationMatrix_setToRotationAxis)
 
-    .def("translation", [](MTransformationMatrix & self, MSpace::Space space) -> MVector {
+    .def("getTranslation", [](MTransformationMatrix & self, MSpace::Space space) -> MVector {
         MStatus status;
         MVector translation = self.getTranslation(space, &status);
 
@@ -303,7 +331,7 @@ TransformationMatrix
             throw std::logic_error(status.errorString().asChar());
         }
         return translation;
-    }, py::arg("space"), "Returns the transformation's translation component as a vector.")
+    }, py::arg("space"), "Returns the translation component of the translation as a vector in centimeters.")
 
     .def("setTranslation", [](MTransformationMatrix & self, MVector vector, MSpace::Space space) {
         MStatus status = self.setTranslation(vector, space);
@@ -313,10 +341,18 @@ TransformationMatrix
         }
     }, py::arg("vector"), py::arg("space"), _doc_TransformationMatrix_setTranslation)
 
-    .def("translateBy", [](MTransformationMatrix & self, MVector vector, MSpace::Space space) {
+    .def("addTranslation", [](MTransformationMatrix & self, MVector vector, MSpace::Space space) {
         MStatus status = self.addTranslation(vector, space);
 
         if (!status) {
             throw std::logic_error(status.errorString().asChar());
         }
-    }, py::arg("vector"), py::arg("space"), "Adds a vector to the transformation's translate component.");
+    }, py::arg("vector"), py::arg("space"), "Add to the translation component by translating relative to the existing transformation.")
+
+;
+
+// Alias
+TransformationMatrix.attr("translation") = TransformationMatrix.attr("getTranslation");
+TransformationMatrix.attr("translateBy") = TransformationMatrix.attr("addTranslation");
+TransformationMatrix.attr("rotateOrientation") = TransformationMatrix.attr("rotationOrientation");  // Maya 2018
+TransformationMatrix.attr("setRotateOrientation") = TransformationMatrix.attr("setRotationOrientation");    // Maya 2018
